@@ -99,10 +99,10 @@ class GzLaunchGenerator(LaunchGenerator):
             namespace=self.namespace,
             parameters=[{'use_sim_time': True}],
             arguments=[
-                '/model/' + self.robot_name + '/tf' + self.GZ_TO_ROS_TF
+                '/model/' + self.robot_name + '/pose' + self.GZ_TO_ROS_TF
             ],
             remappings=[
-                ('/model/' + self.robot_name + '/tf', 'tf')
+                ('/model/' + self.robot_name + '/pose', 'tf')
             ])
 
         # Builtin IMU bridge
