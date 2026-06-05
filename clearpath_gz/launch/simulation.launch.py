@@ -19,6 +19,7 @@ from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.actions import IncludeLaunchDescription
+from launch.actions import OpaqueFunction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import EnvironmentVariable, LaunchConfiguration, PathJoinSubstitution
 
@@ -35,9 +36,12 @@ ARGUMENTS = [
                           choices=['true', 'false'],
                           description='use_sim_time'),
     DeclareLaunchArgument('generate',
-                          default_value='true',
+                          default_value='false',
                           choices=['true', 'false'],
                           description='Generate parameters and launch files'),
+    DeclareLaunchArgument('robot',
+                          default_value='',
+                          description='Custom Robot Path'),
 ]
 
 for pose_element in ['x', 'y', 'yaw']:
@@ -48,6 +52,49 @@ ARGUMENTS.append(DeclareLaunchArgument('z', default_value='0.3',
                  description='z component of the robot pose.'))
 
 
+def launch_setup(context, *args, **kwargs):
+    pkg_clearpath_gz = get_package_share_directory('clearpath_gz')
+
+    robot = LaunchConfiguration('robot').perform(context)
+
+    if robot != '':
+        robot_spawn_launch = PathJoinSubstitution(
+            [pkg_clearpath_gz, 'launch', 'custom_robot_spawn.launch.py'])
+
+        robot_spawn = IncludeLaunchDescription(
+            PythonLaunchDescriptionSource([robot_spawn_launch]),
+            launch_arguments=[
+                ('use_sim_time', LaunchConfiguration('use_sim_time')),
+                ('setup_path', LaunchConfiguration('setup_path')),
+                ('world', LaunchConfiguration('world')),
+                ('rviz', LaunchConfiguration('rviz')),
+                ('x', LaunchConfiguration('x')),
+                ('y', LaunchConfiguration('y')),
+                ('z', LaunchConfiguration('z')),
+                ('yaw', LaunchConfiguration('yaw')),
+                ('robot', LaunchConfiguration('robot'))]
+        )
+
+    else:
+        robot_spawn_launch = PathJoinSubstitution(
+            [pkg_clearpath_gz, 'launch', 'robot_spawn.launch.py'])
+
+        robot_spawn = IncludeLaunchDescription(
+            PythonLaunchDescriptionSource([robot_spawn_launch]),
+            launch_arguments=[
+                ('use_sim_time', LaunchConfiguration('use_sim_time')),
+                ('setup_path', LaunchConfiguration('setup_path')),
+                ('world', LaunchConfiguration('world')),
+                ('rviz', LaunchConfiguration('rviz')),
+                ('x', LaunchConfiguration('x')),
+                ('y', LaunchConfiguration('y')),
+                ('z', LaunchConfiguration('z')),
+                ('yaw', LaunchConfiguration('yaw')),
+                ('generate', LaunchConfiguration('generate'))]
+        )
+
+    return [robot_spawn]
+
 def generate_launch_description():
     # Directories
     pkg_clearpath_gz = get_package_share_directory(
@@ -56,32 +103,54 @@ def generate_launch_description():
     # Paths
     gz_sim_launch = PathJoinSubstitution(
         [pkg_clearpath_gz, 'launch', 'gz_sim.launch.py'])
-    robot_spawn_launch = PathJoinSubstitution(
-        [pkg_clearpath_gz, 'launch', 'robot_spawn.launch.py'])
-
+    
     gz_sim = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([gz_sim_launch]),
         launch_arguments=[
             ('world', LaunchConfiguration('world'))
         ]
     )
+    
+    # if LaunchConfiguration('robot').c == '':
+    #     robot_spawn_launch = PathJoinSubstitution(
+    #         [pkg_clearpath_gz, 'launch', 'custom_robot_spawn.launch.py'])
+        
+    #     robot_spawn = IncludeLaunchDescription(
+    #         PythonLaunchDescriptionSource([robot_spawn_launch]),
+    #         launch_arguments=[
+    #             ('use_sim_time', LaunchConfiguration('use_sim_time')),
+    #             ('setup_path', LaunchConfiguration('setup_path')),
+    #             ('world', LaunchConfiguration('world')),
+    #             ('rviz', LaunchConfiguration('rviz')),
+    #             ('x', LaunchConfiguration('x')),
+    #             ('y', LaunchConfiguration('y')),
+    #             ('z', LaunchConfiguration('z')),
+    #             ('yaw', LaunchConfiguration('yaw')),
+    #             ('robot', LaunchConfiguration('robot'))]
+    #     )
 
-    robot_spawn = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([robot_spawn_launch]),
-        launch_arguments=[
-            ('use_sim_time', LaunchConfiguration('use_sim_time')),
-            ('setup_path', LaunchConfiguration('setup_path')),
-            ('world', LaunchConfiguration('world')),
-            ('rviz', LaunchConfiguration('rviz')),
-            ('x', LaunchConfiguration('x')),
-            ('y', LaunchConfiguration('y')),
-            ('z', LaunchConfiguration('z')),
-            ('yaw', LaunchConfiguration('yaw')),
-            ('generate', LaunchConfiguration('generate'))]
-    )
+    # else:
+    #     robot_spawn_launch = PathJoinSubstitution(
+    #         [pkg_clearpath_gz, 'launch', 'robot_spawn.launch.py'])
+
+
+    #     robot_spawn = IncludeLaunchDescription(
+    #         PythonLaunchDescriptionSource([robot_spawn_launch]),
+    #         launch_arguments=[
+    #             ('use_sim_time', LaunchConfiguration('use_sim_time')),
+    #             ('setup_path', LaunchConfiguration('setup_path')),
+    #             ('world', LaunchConfiguration('world')),
+    #             ('rviz', LaunchConfiguration('rviz')),
+    #             ('x', LaunchConfiguration('x')),
+    #             ('y', LaunchConfiguration('y')),
+    #             ('z', LaunchConfiguration('z')),
+    #             ('yaw', LaunchConfiguration('yaw')),
+    #             ('generate', LaunchConfiguration('generate'))]
+    #     )
 
     # Create launch description and add actions
     ld = LaunchDescription(ARGUMENTS)
     ld.add_action(gz_sim)
-    ld.add_action(robot_spawn)
+    # ld.add_action(robot_spawn)
+    ld.add_action(OpaqueFunction(function=launch_setup))
     return ld
