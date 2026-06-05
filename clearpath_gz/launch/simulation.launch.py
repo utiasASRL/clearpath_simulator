@@ -111,43 +111,6 @@ def generate_launch_description():
         ]
     )
     
-    # if LaunchConfiguration('robot').c == '':
-    #     robot_spawn_launch = PathJoinSubstitution(
-    #         [pkg_clearpath_gz, 'launch', 'custom_robot_spawn.launch.py'])
-        
-    #     robot_spawn = IncludeLaunchDescription(
-    #         PythonLaunchDescriptionSource([robot_spawn_launch]),
-    #         launch_arguments=[
-    #             ('use_sim_time', LaunchConfiguration('use_sim_time')),
-    #             ('setup_path', LaunchConfiguration('setup_path')),
-    #             ('world', LaunchConfiguration('world')),
-    #             ('rviz', LaunchConfiguration('rviz')),
-    #             ('x', LaunchConfiguration('x')),
-    #             ('y', LaunchConfiguration('y')),
-    #             ('z', LaunchConfiguration('z')),
-    #             ('yaw', LaunchConfiguration('yaw')),
-    #             ('robot', LaunchConfiguration('robot'))]
-    #     )
-
-    # else:
-    #     robot_spawn_launch = PathJoinSubstitution(
-    #         [pkg_clearpath_gz, 'launch', 'robot_spawn.launch.py'])
-
-
-    #     robot_spawn = IncludeLaunchDescription(
-    #         PythonLaunchDescriptionSource([robot_spawn_launch]),
-    #         launch_arguments=[
-    #             ('use_sim_time', LaunchConfiguration('use_sim_time')),
-    #             ('setup_path', LaunchConfiguration('setup_path')),
-    #             ('world', LaunchConfiguration('world')),
-    #             ('rviz', LaunchConfiguration('rviz')),
-    #             ('x', LaunchConfiguration('x')),
-    #             ('y', LaunchConfiguration('y')),
-    #             ('z', LaunchConfiguration('z')),
-    #             ('yaw', LaunchConfiguration('yaw')),
-    #             ('generate', LaunchConfiguration('generate'))]
-    #     )
-
     # Create launch description and add actions
     ld = LaunchDescription(ARGUMENTS)
     ld.add_action(gz_sim)

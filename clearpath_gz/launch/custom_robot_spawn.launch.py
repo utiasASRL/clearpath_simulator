@@ -72,10 +72,6 @@ def launch_setup(context, *args, **kwargs):
     yaw = LaunchConfiguration('yaw')
     robot = LaunchConfiguration('robot')
 
-    # # Parse robot YAML into config
-    # clearpath_config = ClearpathConfig(os.path.join(
-    #     str(setup_path.perform(context)), 'robot.yaml'))
-
     namespace = robot.perform(context)
     if namespace in ('', '/'):
         robot_name = 'robot'
@@ -83,13 +79,10 @@ def launch_setup(context, *args, **kwargs):
         robot_name = namespace + '/robot'
 
     # Directories
-    # pkg_clearpath_viz = FindPackageShare('clearpath_viz')
+    pkg_clearpath_gz = FindPackageShare('clearpath_gz')
+    launch_file_platform_service = PathJoinSubstitution(
+        [pkg_clearpath_gz, 'launch', 'generic_platform_service.launch.py'])
 
-    # Paths
-    # rviz_launch = PathJoinSubstitution(
-    #     [pkg_clearpath_viz, 'launch', 'view_robot.launch.py'])
-    launch_file_platform_service = PathJoinSubstitution([
-        setup_path, 'platform/launch', 'platform-service.launch.py'])
     launch_file_sensors_service = PathJoinSubstitution([
         setup_path, 'sensors/launch', 'sensors-service.launch.py'])
     # launch_file_manipulators_service = PathJoinSubstitution([
@@ -100,7 +93,11 @@ def launch_setup(context, *args, **kwargs):
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource([launch_file_platform_service]),
             launch_arguments=[
-              ('prefix', ['/world/', world, '/model/', robot_name, '/link/base_link/sensor/'])]
+              ('prefix', ['/world/', world, '/model/', robot_name, '/link/base_link/sensor/']),
+              ('namespace', namespace),
+              ('setup_path', setup_path),
+              ('use_sim_time', use_sim_time),
+              ]
         ),
 
         IncludeLaunchDescription(
@@ -128,98 +125,6 @@ def launch_setup(context, *args, **kwargs):
         ),
     ])
 
-    # node_generate_description = Node(
-    #     package='clearpath_generator_common',
-    #     executable='generate_description',
-    #     name='generate_description',
-    #     output='screen',
-    #     condition=IfCondition(generate),
-    #     arguments=['-s', setup_path]
-    # )
-
-    # node_generate_semantic_description = Node(
-    #     package='clearpath_generator_common',
-    #     executable='generate_semantic_description',
-    #     name='generate_semantic_description',
-    #     output='screen',
-    #     condition=IfCondition(generate),
-    #     arguments=['-s', setup_path]
-    # )
-
-    # node_generate_launch = Node(
-    #     package='clearpath_generator_gz',
-    #     executable='generate_launch',
-    #     name='generate_launch',
-    #     output='screen',
-    #     condition=IfCondition(generate),
-    #     arguments=['-s', setup_path]
-    # )
-
-    # node_generate_param = Node(
-    #     package='clearpath_generator_gz',
-    #     executable='generate_param',
-    #     name='generate_launch',
-    #     output='screen',
-    #     condition=IfCondition(generate),
-    #     arguments=['-s', setup_path]
-    # )
-
-    # event_generate_description = RegisterEventHandler(
-    #     event_handler=OnProcessExit(
-    #         target_action=node_generate_description,
-    #         on_exit=[node_generate_semantic_description]
-    #     )
-    # )
-
-    # event_generate_semantic_description = RegisterEventHandler(
-    #     event_handler=OnProcessExit(
-    #         target_action=node_generate_semantic_description,
-    #         on_exit=[node_generate_launch]
-    #     )
-    # )
-
-    # event_generate_launch = RegisterEventHandler(
-    #     event_handler=OnProcessExit(
-    #         target_action=node_generate_launch,
-    #         on_exit=[node_generate_param]
-    #     )
-    # )
-
-    # event_generate_param = RegisterEventHandler(
-    #     event_handler=OnProcessExit(
-    #         target_action=node_generate_param,
-    #         on_exit=[group_action_spawn_robot]
-    #     )
-    # )
-
-    # # RViz
-    # rviz = IncludeLaunchDescription(
-    #     PythonLaunchDescriptionSource([rviz_launch]),
-    #     launch_arguments=[
-    #         ('namespace', namespace),
-    #         ('use_sim_time', use_sim_time)],
-    #     condition=IfCondition(LaunchConfiguration('rviz')),
-    # )
-
-    # do_generate = GroupAction(
-    #     actions=[
-    #         node_generate_description,
-    #         event_generate_description,
-    #         event_generate_semantic_description,
-    #         event_generate_launch,
-    #         event_generate_param,
-    #         rviz
-    #     ],
-    #     condition=IfCondition(LaunchConfiguration('generate'))
-    # )
-
-    # do_not_generate = GroupAction(actions=[group_action_spawn_robot],
-    #                               condition=UnlessCondition(LaunchConfiguration('generate')))
-
-    # return [
-    #     do_generate,
-    #     do_not_generate
-    # ]
     return [group_action_spawn_robot]
 
 
